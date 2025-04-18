@@ -11,7 +11,8 @@ import asyncio
 
 # Flask app setup
 app = Flask(__name__)
-CORS(app, origins=["https://ieltspart1.netlify.app"])  # Allow Netlify frontend
+
+CORS(app, origins=["https://ieltspart1.netlify.app", "https://www.ieltspart1.netlify.app"], supports_credentials=True)
 
 # Load environment variables
 load_dotenv()
