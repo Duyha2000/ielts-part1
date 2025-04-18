@@ -1,7 +1,6 @@
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 import traceback
-from pydub import AudioSegment
 import tempfile, os
 from io import BytesIO
 import edge_tts
@@ -40,46 +39,47 @@ def generate_audio():
     # Split the script into lines and clean up whitespace
     lines = [line.strip() for line in script.strip().split("\n") if line.strip()]
 
-    async def synthesize_text(text, voice, out_path):
-        """Generate the audio for the provided text and save to the specified path"""
+    async def synthesize_text(text, voice):
+        """Generate the audio for the provided text"""
         try:
             communicate = edge_tts.Communicate(text, voice)
-            await communicate.save(out_path)
-            print(f"Audio saved to {out_path}")  # Debugging log to confirm audio creation
+            audio_data = await communicate.get_audio()
+            return audio_data
         except Exception as e:
             print(f"Error during audio synthesis: {e}")
             raise
 
     # Create a temporary directory for audio files
     with tempfile.TemporaryDirectory() as tmpdir:
+        final_audio = BytesIO()
+        
         for idx, text in enumerate(lines):
             speaker = "male" if idx % 2 == 0 else "female"
             voice_male = data.get("maleVoice", "en-US-GuyNeural")
             voice_female = data.get("femaleVoice", "en-US-JennyNeural")
             voice = voice_male if speaker == "male" else voice_female
 
-            filename = os.path.join(tmpdir, f"line_{idx:02d}.mp3")
             try:
-                # Create the audio for this line
+                # Generate the audio for this line
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-                loop.run_until_complete(synthesize_text(text, voice, filename))
+                audio_data = loop.run_until_complete(synthesize_text(text, voice))
 
-                # Load the audio segment from the generated file
-                seg = AudioSegment.from_file(filename)
+                # Append audio to the final audio stream
+                final_audio.write(audio_data)
 
-                # Streaming each part of the audio instead of loading everything into memory
-                buffer = BytesIO()
-                seg.export(buffer, format="mp3")
-                buffer.seek(0)
-
-                # Stream the file directly to the user part by part
-                return send_file(buffer, mimetype="audio/mpeg", download_name="final.mp3", as_attachment=True)
+                print(f"Processed {idx+1}/{len(lines)} lines.")  # Debugging log for progress
 
             except Exception as e:
                 print(f"❌ Error processing line {idx+1}: {e}")
                 traceback.print_exc()
                 return jsonify({"error": str(e)}), 500
+
+        # Seek the beginning of the final audio file for streaming
+        final_audio.seek(0)
+        
+        # Stream the file directly to the user
+        return send_file(final_audio, mimetype="audio/mpeg", download_name="final.mp3", as_attachment=True)
 
 @app.route("/api/generate-table", methods=["POST"])
 def generate_ielts_table():
