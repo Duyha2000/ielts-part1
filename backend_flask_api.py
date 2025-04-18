@@ -5,13 +5,20 @@ from pydub import AudioSegment
 import tempfile, os
 from io import BytesIO
 from openai import OpenAI
+from dotenv import load_dotenv
 import re
 
 # Flask app setup
 app = Flask(__name__)
 CORS(app)
+# Load environment variables
+load_dotenv()
 
+# ElevenLabs API Key
+set_api_key(os.getenv("ELEVEN_API_KEY"))
 
+# Set OpenAI API key
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Voice fallback map
 VOICE_MAP = {
