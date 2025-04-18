@@ -12,7 +12,10 @@ import asyncio
 # Flask app setup
 app = Flask(__name__)
 
-CORS(app, origins=["https://ieltspart1.netlify.app", "https://www.ieltspart1.netlify.app"], supports_credentials=True)
+CORS(app, resources={r"/api/*": {"origins": [
+    "https://ieltspart1.netlify.app",
+    "https://www.ieltspart1.netlify.app"
+]}})
 
 # Load environment variables
 load_dotenv()
@@ -22,6 +25,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/api/generate", methods=["POST"])
 def generate_audio():
+    
     data = request.get_json()
     script = data.get("script", "")
     if not script:

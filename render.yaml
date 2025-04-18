@@ -1,4 +1,8 @@
-web: gunicorn main:app
-buildCommand: |
-  apt-get update && apt-get install -y ffmpeg
-  pip install -r requirements.txt
+services:
+  - type: web
+    name: ielts-api
+    env: python
+    buildCommand: |
+      apt-get update && apt-get install -y ffmpeg
+      pip install -r requirements.txt
+    startCommand: gunicorn main:app
