@@ -188,15 +188,18 @@
           )
           .join("");
 
-        const res = await fetch("http://127.0.0.1:5000/api/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            script: text,
-            maleVoice: voiceMale,
-            femaleVoice: voiceFemale,
-          }),
-        });
+        const res = await fetch(
+          "https://ielts-part1.onrender.com/api/generate",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              script: text,
+              maleVoice: voiceMale,
+              femaleVoice: voiceFemale,
+            }),
+          }
+        );
 
         loading.style.display = "none";
 
