@@ -1,6 +1,5 @@
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
-from elevenlabs import generate, save, set_api_key
 import traceback
 from pydub import AudioSegment
 import tempfile, os
@@ -8,6 +7,8 @@ from io import BytesIO
 from openai import OpenAI
 from dotenv import load_dotenv
 import re
+import edge_tts  # ✅ Use Edge TTS instead of ElevenLabs
+import asyncio
 
 # Flask app setup
 app = Flask(__name__)
@@ -15,19 +16,8 @@ CORS(app)
 # Load environment variables
 load_dotenv()
 
-# ElevenLabs API Key
-set_api_key(os.getenv("ELEVEN_API_KEY"))
-
 # Set OpenAI API key
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-# Voice fallback map
-VOICE_MAP = {
-    "man": "Roger",
-    "woman": "Aria",
-    "male": "Roger",
-    "female": "Aria"
-}
 
 @app.route("/api/generate", methods=["POST"])
 def generate_audio():
@@ -39,17 +29,20 @@ def generate_audio():
     lines = [line.strip() for line in script.strip().split("\n") if line.strip()]
     final_audio = AudioSegment.empty()
 
+    async def synthesize_text(text, voice, out_path):
+        communicate = edge_tts.Communicate(text, voice)
+        await communicate.save(out_path)
+
     with tempfile.TemporaryDirectory() as tmpdir:
         for idx, text in enumerate(lines):
             speaker = "male" if idx % 2 == 0 else "female"
-            voice_male = data.get("maleVoice", "Roger")
-            voice_female = data.get("femaleVoice", "Aria")
+            voice_male = data.get("maleVoice", "en-US-GuyNeural")
+            voice_female = data.get("femaleVoice", "en-US-JennyNeural")
             voice = voice_male if speaker == "male" else voice_female
 
             filename = os.path.join(tmpdir, f"line_{idx:02d}.mp3")
             try:
-                audio = generate(text=text, voice=voice, model="eleven_monolingual_v1")
-                save(audio, filename)
+                asyncio.run(synthesize_text(text, voice, filename))
                 seg = AudioSegment.from_file(filename)
                 final_audio += seg + AudioSegment.silent(duration=500)
             except Exception as e:
@@ -67,7 +60,6 @@ def convert_markdown_table_to_tooltip_html(md_table):
     instruction_line = ""
     table_lines = []
 
-    # Extract instruction if present and not a table header
     for i, line in enumerate(parts):
         if "|" in line:
             table_lines = parts[i:]
@@ -75,7 +67,7 @@ def convert_markdown_table_to_tooltip_html(md_table):
         instruction_line += line + "<br>"
 
     headers = [h.strip() for h in table_lines[0].strip("|").split("|")]
-    rows = table_lines[2:]  # Skip header and separator
+    rows = table_lines[2:]
 
     html = """
     <div>
