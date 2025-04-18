@@ -52,7 +52,6 @@ def generate_audio():
 
     # Create a temporary directory for audio files
     with tempfile.TemporaryDirectory() as tmpdir:
-        final_audio = AudioSegment.empty()
         for idx, text in enumerate(lines):
             speaker = "male" if idx % 2 == 0 else "female"
             voice_male = data.get("maleVoice", "en-US-GuyNeural")
@@ -68,22 +67,19 @@ def generate_audio():
 
                 # Load the audio segment from the generated file
                 seg = AudioSegment.from_file(filename)
-                final_audio += seg + AudioSegment.silent(duration=500)  # Add silence between parts
 
-                print(f"Processed {idx+1}/{len(lines)} lines.")  # Debugging log for progress
+                # Streaming each part of the audio instead of loading everything into memory
+                buffer = BytesIO()
+                seg.export(buffer, format="mp3")
+                buffer.seek(0)
+
+                # Stream the file directly to the user part by part
+                return send_file(buffer, mimetype="audio/mpeg", download_name="final.mp3", as_attachment=True)
 
             except Exception as e:
                 print(f"❌ Error processing line {idx+1}: {e}")
                 traceback.print_exc()
                 return jsonify({"error": str(e)}), 500
-
-        # Instead of loading everything into memory, we stream the final audio
-        buffer = BytesIO()
-        final_audio.export(buffer, format="mp3")
-        buffer.seek(0)
-        
-        # Stream the file directly to the user
-        return send_file(buffer, mimetype="audio/mpeg", download_name="final.mp3", as_attachment=True)
 
 @app.route("/api/generate-table", methods=["POST"])
 def generate_ielts_table():
