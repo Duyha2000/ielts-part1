@@ -21,8 +21,6 @@ set_api_key(os.getenv("ELEVEN_API_KEY"))
 # Set OpenAI API key
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-
-
 # Voice fallback map
 VOICE_MAP = {
     "man": "Roger",
