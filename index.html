@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audio Dialogue Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Nunito", sans-serif;
+        text-align: center;
+        padding: 40px;
+        background-color: #f8f8f8;
+      }
+      h1 {
+        font-size: 28px;
+        margin-bottom: 20px;
+      }
+      textarea {
+        width: 100%;
+        max-width: 600px;
+        height: 200px;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        resize: vertical;
+        white-space: pre-line;
+      }
+      .tooltip {
+        position: relative;
+        cursor: pointer;
+        display: inline-block;
+      }
+
+      .tooltiptext {
+        visibility: hidden;
+        background-color: #444;
+        color: #fff;
+        text-align: center;
+        border-radius: 4px;
+        padding: 5px 8px;
+        position: absolute;
+        z-index: 1;
+        top: -5px;
+        left: 110%;
+        white-space: nowrap;
+        font-size: 13px;
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+      }
+
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+      }
+      select {
+        margin-top: 10px;
+        padding: 8px;
+        font-size: 14px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+      }
+      button {
+        margin-top: 20px;
+        font-size: 16px;
+        padding: 12px 24px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      audio {
+        margin-top: 25px;
+        width: 100%;
+        max-width: 600px;
+      }
+      .loading {
+        margin-top: 20px;
+        font-style: italic;
+        color: #666;
+      }
+      .preview {
+        margin-top: 30px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: left;
+        background: #fff;
+        border-radius: 8px;
+        padding: 10px;
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+      }
+      .line {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: #007bff;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-family: sans-serif;
+      }
+      .bubble {
+        background: #e4e6eb;
+        padding: 8px 12px;
+        border-radius: 8px;
+        max-width: 80%;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🎙️ Audio Dialogue Generator</h1>
+
+    <textarea
+      id="dialogueBox"
+      placeholder="Each line is a message. Speaker will alternate automatically.\nExample:\nGood morning. How can I help you?\nGood morning. I want to alter my insurance policy."
+    ></textarea>
+
+    <br />
+    <label>🧑 Giọng nam: </label>
+    <select id="voiceMale">
+      <option value="Roger" selected>Roger</option>
+      <option value="Adam">Adam</option>
+      <option value="Antoni">Antoni</option>
+    </select>
+
+    <label>👩 Giọng nữ: </label>
+    <select id="voiceFemale">
+      <option value="Aria" selected>Aria</option>
+      <option value="Rachel">Rachel</option>
+      <option value="Bella">Bella</option>
+    </select>
+
+    <br />
+    <button onclick="generateAudio()">🔊 Generate Audio</button>
+    <button onclick="generateIELTSTable()">📄 Generate IELTS Table</button>
+
+    <div class="loading" id="loadingMsg" style="display: none">
+      🔄 Processing, please wait...
+    </div>
+
+    <audio id="audioPlayer" controls style="display: none"></audio>
+    <div class="preview" id="scriptPreview"></div>
+    <div class="preview" id="ieltsTable"></div>
+
+    <script>
+      async function generateAudio() {
+        const text = document.getElementById("dialogueBox").value.trim();
+        if (!text) return alert("Please enter some dialogue.");
+
+        const voiceMale = document.getElementById("voiceMale").value;
+        const voiceFemale = document.getElementById("voiceFemale").value;
+
+        const loading = document.getElementById("loadingMsg");
+        const audio = document.getElementById("audioPlayer");
+        loading.style.display = "block";
+        audio.style.display = "none";
+
+        const lines = text.split("\n").filter((line) => line.trim());
+        const previewDiv = document.getElementById("scriptPreview");
+        previewDiv.innerHTML = lines
+          .map(
+            (line, i) => `
+          <div class="line">
+            <div class="avatar">${i % 2 === 0 ? "👨" : "👩"}</div>
+            <div class="bubble">${line}</div>
+          </div>
+        `
+          )
+          .join("");
+
+        const res = await fetch("http://127.0.0.1:5000/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            script: text,
+            maleVoice: voiceMale,
+            femaleVoice: voiceFemale,
+          }),
+        });
+
+        loading.style.display = "none";
+
+        if (res.ok) {
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          audio.src = url;
+          audio.style.display = "block";
+          audio.style.margin = "auto";
+          audio.style.padding = "10px 0";
+          audio.play();
+        } else {
+          alert("❌ Failed to generate audio.");
+        }
+      }
+
+      async function generateIELTSTable() {
+        const text = document.getElementById("dialogueBox").value.trim();
+        if (!text) return alert("Please enter some dialogue first!");
+
+        const loading = document.getElementById("loadingMsg");
+        loading.style.display = "block";
+
+        const res = await fetch("http://127.0.0.1:5000/api/generate-table", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ script: text }),
+          mode: "cors",
+        });
+
+        loading.style.display = "none";
+
+        const container = document.getElementById("ieltsTable");
+        if (res.ok) {
+          const { html } = await res.json();
+          container.innerHTML = html;
+        } else {
+          container.innerHTML =
+            "<p style='color:red'>❌ Failed to generate table.</p>";
+        }
+      }
+    </script>
+  </body>
+</html>
