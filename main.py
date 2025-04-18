@@ -39,7 +39,6 @@ def generate_audio():
 
     # Split the script into lines and clean up whitespace
     lines = [line.strip() for line in script.strip().split("\n") if line.strip()]
-    final_audio = AudioSegment.empty()
 
     async def synthesize_text(text, voice, out_path):
         """Generate the audio for the provided text and save to the specified path"""
@@ -51,8 +50,9 @@ def generate_audio():
             print(f"Error during audio synthesis: {e}")
             raise
 
-    # Temporary directory to store audio files
+    # Create a temporary directory for audio files
     with tempfile.TemporaryDirectory() as tmpdir:
+        final_audio = AudioSegment.empty()
         for idx, text in enumerate(lines):
             speaker = "male" if idx % 2 == 0 else "female"
             voice_male = data.get("maleVoice", "en-US-GuyNeural")
@@ -77,11 +77,13 @@ def generate_audio():
                 traceback.print_exc()
                 return jsonify({"error": str(e)}), 500
 
-        # After processing all lines, export the final audio
+        # Instead of loading everything into memory, we stream the final audio
         buffer = BytesIO()
         final_audio.export(buffer, format="mp3")
         buffer.seek(0)
-        return send_file(buffer, mimetype="audio/mpeg", download_name="final.mp3")
+        
+        # Stream the file directly to the user
+        return send_file(buffer, mimetype="audio/mpeg", download_name="final.mp3", as_attachment=True)
 
 @app.route("/api/generate-table", methods=["POST"])
 def generate_ielts_table():
