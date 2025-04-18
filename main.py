@@ -6,13 +6,13 @@ import tempfile, os
 from io import BytesIO
 from openai import OpenAI
 from dotenv import load_dotenv
-import re
-import edge_tts  # ✅ Use Edge TTS instead of ElevenLabs
+import edge_tts
 import asyncio
 
 # Flask app setup
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["https://ieltspart1.netlify.app"])  # Allow Netlify frontend
+
 # Load environment variables
 load_dotenv()
 
@@ -42,7 +42,9 @@ def generate_audio():
 
             filename = os.path.join(tmpdir, f"line_{idx:02d}.mp3")
             try:
-                asyncio.run(synthesize_text(text, voice, filename))
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(synthesize_text(text, voice, filename))
                 seg = AudioSegment.from_file(filename)
                 final_audio += seg + AudioSegment.silent(duration=500)
             except Exception as e:
@@ -134,8 +136,6 @@ Conversation:
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-
 
 if __name__ == "__main__":
     app.run(debug=True)
