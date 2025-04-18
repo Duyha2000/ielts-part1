@@ -12,10 +12,14 @@ import asyncio
 # Flask app setup
 app = Flask(__name__)
 
-CORS(app, resources={r"/api/*": {"origins": [
-    "https://ieltspart1.netlify.app",
-    "https://www.ieltspart1.netlify.app"
-]}})
+CORS(app, resources={r"/api/*": {
+    "origins": [
+        "https://ieltspart1.netlify.app",
+        "https://www.ieltspart1.netlify.app"
+    ],
+    "methods": ["GET", "POST", "OPTIONS"],
+    "allow_headers": ["Content-Type"],
+}})
 
 # Load environment variables
 load_dotenv()
@@ -102,6 +106,12 @@ def convert_markdown_table_to_tooltip_html(md_table):
 
     html += "</tbody></table></div>"
     return html
+@app.after_request
+def after_request(response):
+    response.headers.add("Access-Control-Allow-Origin", "*")  # Hoặc origin cụ thể
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type")
+    response.headers.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    return response
 
 @app.route("/api/generate-table", methods=["POST"])
 def generate_ielts_table():
