@@ -1,6 +1,7 @@
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 from elevenlabs import generate, save, set_api_key
+import traceback
 from pydub import AudioSegment
 import tempfile, os
 from io import BytesIO
@@ -19,6 +20,8 @@ set_api_key(os.getenv("ELEVEN_API_KEY"))
 
 # Set OpenAI API key
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+
 
 # Voice fallback map
 VOICE_MAP = {
@@ -52,7 +55,8 @@ def generate_audio():
                 seg = AudioSegment.from_file(filename)
                 final_audio += seg + AudioSegment.silent(duration=500)
             except Exception as e:
-                print(f"[❌ Error line {idx}]: {e}")
+                print(f"❌ Error in /api/generate: {e}")
+                traceback.print_exc()
                 return jsonify({"error": str(e)}), 500
 
         buffer = BytesIO()
