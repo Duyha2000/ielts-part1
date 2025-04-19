@@ -38,7 +38,7 @@ def generate_audio():
         prompt = f"""
 You are an English tutor helping a student practice IELTS Listening Part 1.
 
-Given the topic below, write a short natural conversation (about 15-20 lines), like in the IELTS Listening exam.
+Given the topic below, write a short natural conversation (about 10-15 lines), like in the IELTS Listening exam.
 
 Make it realistic and friendly, and DO NOT label speakers (no "Speaker 1:", "Speaker A:", or names).
 
@@ -48,7 +48,6 @@ Just write the dialogue, one line per speaker.
 """
         try:
             client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
             res = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 temperature=0.6,
@@ -58,41 +57,51 @@ Just write the dialogue, one line per speaker.
         except Exception as e:
             return jsonify({"error": f"Failed to generate dialogue from prompt: {str(e)}"}), 500
 
-    # ✅ Tạo audio từ đoạn hội thoại
+    # ✅ Chuẩn bị danh sách câu thoại
     lines = [line.strip() for line in script.strip().split("\n") if line.strip()]
     final_audio = AudioSegment.empty()
 
+    # ✅ Hàm async tạo file âm thanh
     async def synthesize_text(text, voice, out_path):
         communicate = edge_tts.Communicate(text, voice)
         await communicate.save(out_path)
 
     with tempfile.TemporaryDirectory() as tmpdir:
+        tasks = []
+        filenames = []
+
+        # ✅ Chuẩn bị task + tên file
         for idx, text in enumerate(lines):
             voice = voice_male if idx % 2 == 0 else voice_female
             filename = os.path.join(tmpdir, f"line_{idx:02d}.mp3")
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(synthesize_text(text, voice, filename))
-                seg = AudioSegment.from_file(filename)
-                final_audio += seg + AudioSegment.silent(duration=200)
-            except Exception as e:
-                print(f"❌ Error in /api/generate: {e}")
-                traceback.print_exc()
-                return jsonify({"error": str(e)}), 500
+            filenames.append(filename)
+            tasks.append(synthesize_text(text, voice, filename))
 
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(asyncio.gather(*tasks))
+        except Exception as e:
+            print(f"❌ Error in async gather: {e}")
+            traceback.print_exc()
+            return jsonify({"error": str(e)}), 500
+
+        # ✅ Ghép các file audio lại
+        for filename in filenames:
+            seg = AudioSegment.from_file(filename)
+            final_audio += seg + AudioSegment.silent(duration=200)
+
+        # ✅ Export thành mp3 và encode base64
         buffer = BytesIO()
         final_audio.export(buffer, format="mp3", bitrate="64k")
         buffer.seek(0)
-
-        # ✅ Encode audio to base64 và trả về cùng script
         audio_base64 = base64.b64encode(buffer.read()).decode("utf-8")
 
         return jsonify({
             "audio": audio_base64,
             "script": script
         })
-        
+             
 def convert_markdown_table_to_tooltip_html(md_table):
     parts = md_table.strip().split("\n")
     instruction_line = ""
