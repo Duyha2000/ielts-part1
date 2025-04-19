@@ -41,7 +41,10 @@ You are an English tutor helping a student practice IELTS Listening Part 1.
 Given the topic below, write a short, realistic and friendly conversation (about 20 lines), like in the IELTS Listening exam.
 
 Use one line per speaker. DO NOT label speakers or use names like "Speaker 1".
-
+❌ DO NOT label speakers at the beginning of each line.
+  - Do NOT write things like "Customer:", "Receptionist:", "Speaker A:", etc.
+  - Just write the dialogue naturally, one line per speaker.
+  
 If the conversation includes:
 
 - 🔠 Spelling names: format like → "W - H - I - T - M - O - R - E"
@@ -171,12 +174,15 @@ You are an IELTS listening question generator.
 
 From the conversation below, create a Table Completion task for IELTS Listening Part 1.
 
-✅ Determine the most suitable instruction (e.g. ONE WORD ONLY, A NUMBER, NO MORE THAN TWO WORDS...).
-✅ Start with the instruction line.
-✅ Then generate a table (in markdown) with two columns:
-    - Column 1: Field label
+✅ Start with the instruction line (e.g. NO MORE THAN TWO WORDS AND/OR A NUMBER).
+✅ Then generate a table (in markdown) with TWO columns:
+    - Column 1: Field label (e.g. Name, Phone, Address, Time, Email, Reference No.)
     - Column 2: Correct answer (not blanks)
-✅ Do NOT explain or wrap with code block.
+
+✅ The table should contain between 4 and 6 rows of realistic information.
+✅ Use information typical in IELTS Listening Part 1 — booking forms, personal details, delivery info, appointments, etc.
+
+DO NOT explain. Return only the instruction + markdown table.
 
 Conversation:
 {script}
