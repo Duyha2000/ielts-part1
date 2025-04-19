@@ -142,6 +142,47 @@ def after_request(response):
     response.headers.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
     return response
 
+def convert_markdown_table_to_tooltip_html(md_table):
+    parts = md_table.strip().split("\n")
+    instruction_line = ""
+    table_lines = []
+
+    for i, line in enumerate(parts):
+        if "|" in line:
+            table_lines = parts[i:]
+            break
+        instruction_line += line + "<br>"
+
+    headers = [h.strip() for h in table_lines[0].strip("|").split("|")]
+    rows = table_lines[2:]
+
+    html = """
+    <div>
+    <p><strong>Complete the table below.</strong><br>
+    Write your answers in the blank spaces provided.</p>
+    """ + (f"<p><strong>Instruction:</strong> {instruction_line}</p>" if instruction_line else "") + """
+    <table style='width:100%; border-collapse: collapse;'>
+    <thead><tr>"""
+    html += "".join(f"<th style='border:1px solid #ddd;padding:8px'>{h}</th>" for h in headers)
+    html += "</tr></thead><tbody>"
+
+    for row in rows:
+        cols = [c.strip() for c in row.strip("|").split("|")]
+        if len(cols) == 2:
+            label, answer = cols
+            html += "<tr>"
+            html += f"<td style='border:1px solid #ddd;padding:8px'>{label}</td>"
+            html += (
+                "<td style='border:1px solid #ddd;padding:8px'>"
+                "<span class='tooltip'>______________"
+                f"<span class='tooltiptext'>{answer}</span>"
+                "</span></td>"
+            )
+            html += "</tr>"
+
+    html += "</tbody></table></div>"
+    return html
+
 @app.route("/api/generate-table", methods=["POST"])
 def generate_ielts_table():
     data = request.get_json()
@@ -193,6 +234,6 @@ Conversation:
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+    
 if __name__ == "__main__":
     app.run(debug=True, threaded=True, use_reloader=False, host='0.0.0.0', port=5000)
