@@ -75,14 +75,14 @@ Just write the dialogue, one line per speaker.
                 asyncio.set_event_loop(loop)
                 loop.run_until_complete(synthesize_text(text, voice, filename))
                 seg = AudioSegment.from_file(filename)
-                final_audio += seg + AudioSegment.silent(duration=500)
+                final_audio += seg + AudioSegment.silent(duration=200)
             except Exception as e:
                 print(f"❌ Error in /api/generate: {e}")
                 traceback.print_exc()
                 return jsonify({"error": str(e)}), 500
 
         buffer = BytesIO()
-        final_audio.export(buffer, format="mp3")
+        final_audio.export(buffer, format="mp3", bitrate="64k")
         buffer.seek(0)
 
         # ✅ Encode audio to base64 và trả về cùng script
