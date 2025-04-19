@@ -77,8 +77,16 @@ Given the topic below, write a short, realistic and friendly conversation (about
 - Avoid decimal point numbers like "12.5" or "15.25"
 
 ✅ Use natural rhythm. If spelling occurs, split it from the sentence for clarity:
-  - “It’s Linh.”
-  - “That’s L - I - N - H.”
+  - “It’s Peter.”
+  - “That’s P - E - T - E - R.”
+
+🌀 Add light natural twists like:
+- Small corrections: “Actually, just two nights.”
+- Hesitation: “Hmm... I think it’s the 20th.”
+- Choosing between options: “Maybe a double? No, a single.”
+- Clarifying something: “You mean like a reference number?”
+
+⚠️ Keep it **realistic and simple**, suitable for students at IELTS Band 4.5–5.0.
 
 Now generate the conversation based on this topic:
 {script}
@@ -199,20 +207,47 @@ def generate_ielts_table():
         prompt = f"""
 You are an IELTS Listening question generator.
 
-From the conversation below, create a **Table Completion** task similar to IELTS Listening Part 1.
+Based on the conversation below, generate a **Table Completion** task for IELTS Listening Part 1.
 
 ✅ First, write a suitable instruction line (e.g. NO MORE THAN TWO WORDS AND/OR A NUMBER).
-✅ Then generate a table in **markdown** format with two columns:
-   - Column 1: Field label (e.g. any information like Name, Phone number, Date, Time, Cost, Reference code…)
-   - Column 2: The correct answer (DO NOT leave blanks)
+✅ Then generate a table in **markdown format** with exactly two columns:
+   - Column 1: Field label (e.g. Name, Number of nights, Room type, Guest name, Booking date…)
+   - Column 2: The correct answer (copied exactly from the conversation)
 
-🧠 IMPORTANT:
-– Keep the order of information the same as it appears in the conversation.  
-– DO NOT group, reorder, or summarize any information.  
-– Return **at least 3 rows** if possible.
+🧠 RULES:
+– Return **at least 5 rows**, if available.
+– Field labels must be **clear and specific**, avoid vague labels like “Type” or “Number”.
+– The table rows must follow the **same order** as the details appear in the dialogue (top to bottom).
+– DO NOT combine or summarize information from different lines.
+– DO NOT make up new information. Use only what is **explicitly stated** in the conversation.
+– DO NOT leave blanks — every answer cell must be filled.
 
-⚠️ Output format:
-Return only the instruction + markdown table, without any extra explanation.
+💡 Example:
+
+Conversation:
+Hi, I’d like to book a room.
+Sure. What date are you thinking?
+Uh… maybe the 18th of August. No wait—let’s make it the 20th instead.
+Alright. And how many nights?
+Just two, thanks.
+Okay. May I have your full name?
+Yes, it's Sarah Lee.
+Can you spell the last name for me?
+L - E - E.
+And would you like a single or double room?
+Hmm… I was thinking a double, but a single room is fine.
+
+✅ Output:
+
+NO MORE THAN TWO WORDS AND/OR A NUMBER
+
+| Field label         | Correct answer    |
+|---------------------|-------------------|
+| Booking date        | 20th of August    |
+| Number of nights    | two               |
+| Guest name          | Sarah Lee         |
+| Spelled surname     | L - E - E         |
+| Room type           | single room       |
 
 ---
 
