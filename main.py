@@ -42,8 +42,12 @@ Given the topic below, write a short, realistic and friendly conversation (about
 
 🧠 Formatting rules:
 
-❌ DO NOT label speakers (e.g. Customer:, Agent:, Speaker A:)
-✅ Each speaker should say one sentence per line
+❌ DO NOT label speakers in any form.
+– Do NOT write things like: Tutor:, Student:, Customer:, Receptionist:, Agent:, Speaker A:, etc.
+
+✅ Only write natural conversation.
+– One line = one speaker turn.
+– No names, roles, or prefixes before sentences.
 
 🔠 Spelling names:
 - Use hyphen format: "W - H - I - T - M - O - R - E"
@@ -193,21 +197,24 @@ def generate_ielts_table():
 
     try:
         prompt = f"""
-You are an IELTS listening question generator.
+You are an IELTS Listening question generator.
 
-From the conversation below, create a Table Completion task for IELTS Listening Part 1.
+From the conversation below, create a **Table Completion** task similar to IELTS Listening Part 1.
 
-✅ Start with a suitable instruction line (e.g. NO MORE THAN TWO WORDS AND/OR A NUMBER).
-✅ Then generate a table in markdown with two columns:
-   - Column 1: Field label (e.g. Name, Phone number, Email, Address, Date, Time, Price, Reference code)
-   - Column 2: Correct answer (do NOT leave blanks)
+✅ First, write a suitable instruction line (e.g. NO MORE THAN TWO WORDS AND/OR A NUMBER).
+✅ Then generate a table in **markdown** format with two columns:
+   - Column 1: Field label (e.g. any information like Name, Phone number, Date, Time, Cost, Reference code…)
+   - Column 2: The correct answer (DO NOT leave blanks)
 
 🧠 IMPORTANT:
-✅ Keep the order of rows the same as the order in which the information appears in the conversation.
-❌ Do NOT group or reorder information.
-✅ The table should have 5–6 rows, based on what was discussed in the same order.
+– Keep the order of information the same as it appears in the conversation.  
+– DO NOT group, reorder, or summarize any information.  
+– Return **at least 3 rows** if possible.
 
-DO NOT explain. Return only the instruction and markdown table.
+⚠️ Output format:
+Return only the instruction + markdown table, without any extra explanation.
+
+---
 
 Conversation:
 {script}

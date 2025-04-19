@@ -181,28 +181,32 @@
     <div class="preview" id="ieltsTable"></div>
 
     <script>
+      let currentScript = ""; // ✅ Biến lưu hội thoại thật sau khi generate
+
       function togglePreview() {
         const preview = document.getElementById("scriptPreview");
         preview.style.display =
           preview.style.display === "none" ? "block" : "none";
       }
 
+      function showScriptInput() {
+        document.getElementById("dialogueWrapper").style.display = "block";
+        document.getElementById("editScriptBtn").style.display = "none";
+      }
+
       async function generateAudio() {
         const dialogueWrapper = document.getElementById("dialogueWrapper");
         const editBtn = document.getElementById("editScriptBtn");
         const textarea = document.getElementById("dialogueBox");
-        const text = textarea.value.trim();
         const previewDiv = document.getElementById("scriptPreview");
         const loading = document.getElementById("loadingMsg");
         const audio = document.getElementById("audioPlayer");
 
+        const text = textarea.value.trim();
         if (!text) return alert("Please enter a prompt or dialogue.");
 
-        // Ẩn textarea, hiện nút sửa
         dialogueWrapper.style.display = "none";
         editBtn.style.display = "inline-block";
-
-        // Show loading
         loading.style.display = "block";
         audio.style.display = "none";
 
@@ -235,7 +239,13 @@
           const data = await res.json();
           const { script, audio: audioBase64 } = data;
 
-          // 👉 Convert base64 to audio Blob
+          currentScript = script; // ✅ Lưu lại script thật dùng cho Generate Table
+
+          if (isPrompt) {
+            textarea.value = script; // ✅ Hiển thị lại nếu người dùng nhập prompt
+          }
+
+          // Convert base64 audio to Blob
           const binary = atob(audioBase64);
           const bytes = new Uint8Array(binary.length);
           for (let i = 0; i < binary.length; i++) {
@@ -247,7 +257,7 @@
           audio.style.display = "block";
           audio.play();
 
-          // 👉 Render script preview
+          // Render script preview
           const lines = script.split("\n").filter((line) => line.trim());
           previewDiv.innerHTML = lines
             .map(
@@ -262,37 +272,43 @@
         }
       }
 
-      function showScriptInput() {
-        document.getElementById("dialogueWrapper").style.display = "block";
-        document.getElementById("editScriptBtn").style.display = "none";
-      }
-
       async function generateIELTSTable() {
-        const text = document.getElementById("dialogueBox").value.trim();
-        if (!text) return alert("Please enter some dialogue first!");
+        const script =
+          currentScript || document.getElementById("dialogueBox").value.trim();
+        if (!script)
+          return alert("❌ No dialogue available to generate table.");
 
         const loading = document.getElementById("loadingMsg");
-        loading.style.display = "block";
-
-        const res = await fetch(
-          "https://ielts-part1.onrender.com/api/generate-table",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ script: text }),
-            mode: "cors",
-          }
-        );
-
-        loading.style.display = "none";
-
         const container = document.getElementById("ieltsTable");
-        if (res.ok) {
-          const { html } = await res.json();
-          container.innerHTML = html;
-        } else {
+
+        loading.style.display = "block";
+        container.innerHTML = "";
+
+        try {
+          const res = await fetch(
+            "https://ielts-part1.onrender.com/api/generate-table",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ script }),
+              mode: "cors",
+            }
+          );
+
+          loading.style.display = "none";
+
+          if (res.ok) {
+            const { html } = await res.json();
+            container.innerHTML = html;
+          } else {
+            container.innerHTML =
+              "<p style='color:red'>❌ Failed to generate table.</p>";
+          }
+        } catch (err) {
+          loading.style.display = "none";
           container.innerHTML =
-            "<p style='color:red'>❌ Failed to generate table.</p>";
+            "<p style='color:red'>❌ Error: " + err.message + "</p>";
+          console.error(err);
         }
       }
     </script>
