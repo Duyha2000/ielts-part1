@@ -38,7 +38,7 @@ def generate_audio():
         prompt = f"""
 You are an English tutor helping a student practice IELTS Listening Part 1.
 
-Given the topic below, write a short, realistic and friendly conversation (about 20 lines), like in the IELTS Listening exam.
+Given the topic below, write a short, realistic and friendly conversation (about 10-15 lines), like in the IELTS Listening exam.
 
 Use one line per speaker. DO NOT label speakers or use names like "Speaker 1".
 ❌ DO NOT label speakers at the beginning of each line.
