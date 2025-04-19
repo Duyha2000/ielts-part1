@@ -33,7 +33,7 @@ def generate_audio():
     if not script:
         return jsonify({"error": "No script provided"}), 400
 
-    # ✅ Nếu là prompt, gọi GPT để tạo đoạn hội thoại
+    # ✅ Nếu là prompt → gọi GPT để sinh hội thoại
     if mode == "prompt":
         prompt = f"""
 You are an English tutor helping a student practice IELTS Listening Part 1.
@@ -47,22 +47,18 @@ Prompt: {script}
 Just write the dialogue, one line per speaker.
 """
         try:
-            from openai import OpenAI
-            import os
             client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
             res = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 temperature=0.6,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
+                messages=[{"role": "user", "content": prompt}]
             )
-            script = res.choices[0].message.content
+            script = res.choices[0].message.content.strip()
         except Exception as e:
             return jsonify({"error": f"Failed to generate dialogue from prompt: {str(e)}"}), 500
 
-    # 👉 Tạo audio như cũ
+    # ✅ Tạo audio từ đoạn hội thoại
     lines = [line.strip() for line in script.strip().split("\n") if line.strip()]
     final_audio = AudioSegment.empty()
 
@@ -88,8 +84,15 @@ Just write the dialogue, one line per speaker.
         buffer = BytesIO()
         final_audio.export(buffer, format="mp3")
         buffer.seek(0)
-        return send_file(buffer, mimetype="audio/mpeg", download_name="final.mp3")
 
+        # ✅ Encode audio to base64 và trả về cùng script
+        audio_base64 = base64.b64encode(buffer.read()).decode("utf-8")
+
+        return jsonify({
+            "audio": audio_base64,
+            "script": script
+        })
+        
 def convert_markdown_table_to_tooltip_html(md_table):
     parts = md_table.strip().split("\n")
     instruction_line = ""
