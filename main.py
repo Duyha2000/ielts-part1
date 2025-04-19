@@ -38,87 +38,67 @@ def generate_audio():
         prompt = f"""
 You are an English tutor helping a student practice IELTS Listening Part 1.
 
-Given the topic below, write a short, realistic and friendly conversation (about 10-13 lines), like in the IELTS Listening exam.
+You are an English tutor helping a student practice IELTS Listening Part 1.
 
-🧠 Formatting rules:
-
-❌ DO NOT label speakers in any form.
-– Do NOT write things like: Tutor:, Student:, Customer:, Receptionist:, Agent:, Speaker A:, etc.
-
-✅ Only write natural conversation.
-– One line = one speaker turn.
-– No names, roles, or prefixes before sentences.
-
-🔠 Spelling names:
-- Use hyphen format: "W - H - I - T - M - O - R - E"
-- If both first and last names are spelled, break into two turns:
-  - “My name is Linh.”
-  - “That's spelled L - I - N - H.”
-  - “Last name is N - G - U - Y - E - N.”
-
-🔢 Phone numbers or digit sequences:
-- Use word format for clarity: "Zero - Nine - One - Two"
-- (You may also use "Oh" instead of "Zero" if natural)
-
-📧 Email addresses:
-- Only spell the username
-  - Example: "l - i - n - h at gmail dot com"
-- DO NOT spell “gmail” or “dot com” — write them normally
-
-🔐 Booking codes, license plates, or reference numbers:
-- Format: "A - B - 2 - K - 7"
-
-🕒 Time:
-- Write times in a natural spoken format: "at five thirty", "around 2:15", "ten a.m."
-- DO NOT use numeric-only formats like "5:30" or "17:45"
-
-💰 Prices and money:
-- Use spoken format: "twelve pounds fifty", "fifteen dollars twenty-five"
-- Avoid decimal point numbers like "12.5" or "15.25"
-
-🧠 Spelling and natural rhythm:
-
-✅ When spelling, always **pause before the spelling starts**.  
-– Do NOT merge the name and spelling into one turn.  
-– Break it clearly into a separate line, like:
-  - “It’s Sarah.”
-  - “That’s S - A - R - A - H.”
-
-✅ To make it sound realistic and IELTS-like, allow hesitation before spelling:
-  - “That’s... S - A - R - A - H.”
-  - “Let me spell that — S - A - R - A - H.”
-  - “It’s spelled... S - A - R - A - H.”
-
-⛔ Do NOT say: “That’s spelled S - A - R - A - H.” in one go — this sounds too fast and robotic.
+Generate a short, friendly and realistic conversation between two people (10–13 lines), in the style of IELTS Listening Part 1.
 
 ---
 
-🌀 Add **light, natural twists** just like real IELTS Part 1:
+🎯 GOAL:
+Make the conversation sound like real-life speech between two people.
+It must include **at least 3 natural twists** from different categories.
 
-– Small corrections:  
-  - “Actually, just two nights.”  
-  - “No wait—make that the 20th.”  
+---
 
-– Hesitation:  
-  - “Hmm... I think it’s the 20th.”  
-  - “Let me see... probably next Friday.”  
+🌀 YOU MUST include **3 or more** of the following twists:
 
-– Choosing between options:  
-  - “Maybe a double? No, a single.”  
-  - “I was thinking two beds, but a single’s fine.”  
+1. ✅ **Self-correction**:
+   - “Actually, just two nights.”
+   - “No wait, make that Saturday.”
 
-– Clarifying / checking:  
-  - “You mean like a reference number?”  
-  - “Do you need that spelled out?”
+2. ✅ **Hesitation**:
+   - “Hmm… I think it’s the 20th.”
+   - “Let me see... probably around 2 p.m.”
 
-🎯 Goal: Make the dialogue realistic, clear, and simple — like **two people talking naturally**, not a scripted test.
+3. ✅ **Uncertainty / Choosing**:
+   - “Maybe a double? No, a single.”
+   - “I was thinking two beds, but a single’s fine.”
 
-⚠️ Keep it **realistic and simple**, suitable for students at IELTS Band 5.0.
+4. ✅ **Clarification**:
+   - “Do you mean like my reference number?”
+   - “You want it spelled out?”
 
-Now generate the conversation based on this topic:
-{script}
+---
 
-Return only the conversation, one line per speaker.
+🧠 FORMATTING RULES:
+
+- ❌ DO NOT label speakers (no: Customer:, Student:, Agent:)
+- ✅ One line = one speaker turn
+- ✅ No explanation, no extra text — just the dialogue
+
+---
+
+🔡 SPELLING:
+- Must break into separate turn and **pause before spelling**
+- Format: “That’s... S - A - R - A - H.” or “Let me spell it — N - G - U - Y - E - N.”
+- NEVER combine name and spelling in one sentence
+
+---
+
+🔢 FORMATTING:
+- Phone numbers: "Zero - Nine - Eight - One"
+- Email (only spell username): "l - i - n - h at gmail dot com"
+- Times: "around five thirty", "ten a.m.", not "5:30"
+- Money: "twelve pounds fifty"
+- Reference code: "A - B - 7 - X - 3"
+
+---
+
+⚠️ Keep it **realistic**, natural, and suitable for students 
+
+Topic: {script}
+
+Return only the conversation. No labels. No extra lines.
 """
         try:
             client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
