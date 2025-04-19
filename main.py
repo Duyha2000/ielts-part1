@@ -40,23 +40,46 @@ You are an English tutor helping a student practice IELTS Listening Part 1.
 
 Given the topic below, write a short, realistic and friendly conversation (about 10-15 lines), like in the IELTS Listening exam.
 
-Use one line per speaker. DO NOT label speakers or use names like "Speaker 1".
-❌ DO NOT label speakers at the beginning of each line.
-  - Do NOT write things like "Customer:", "Receptionist:", "Speaker A:", etc.
-  - Just write the dialogue naturally, one line per speaker.
-  
-If the conversation includes:
+🧠 Formatting rules:
 
-- 🔠 Spelling names: format like → "W - H - I - T - M - O - R - E"
-- 🔢 Phone numbers: format like → "0 - 9 - 3 - 5 - 8 - 2 - 1"
-- 📧 Email addresses: format like → "t - o - m @ g - m - a - i - l . c - o - m"
-- 🔐 License plates / codes / booking references: format like → "A - B - 7 - 2 - Q - 9"
+❌ DO NOT label speakers (e.g. Customer:, Agent:, Speaker A:)
+✅ Each speaker should say one sentence per line
 
-Each item should be spaced out clearly, using hyphens with spaces for clarity.
+🔠 Spelling names:
+- Use hyphen format: "W - H - I - T - M - O - R - E"
+- If both first and last names are spelled, break into two turns:
+  - “My name is Linh.”
+  - “That's spelled L - I - N - H.”
+  - “Last name is N - G - U - Y - E - N.”
 
-Prompt: {script}
+🔢 Phone numbers or digit sequences:
+- Use word format for clarity: "Zero - Nine - One - Two"
+- (You may also use "Oh" instead of "Zero" if natural)
 
-Just write the dialogue only, one line per speaker.
+📧 Email addresses:
+- Only spell the username
+  - Example: "l - i - n - h at gmail dot com"
+- DO NOT spell “gmail” or “dot com” — write them normally
+
+🔐 Booking codes, license plates, or reference numbers:
+- Format: "A - B - 2 - K - 7"
+
+🕒 Time:
+- Write times in a natural spoken format: "at five thirty", "around 2:15", "ten a.m."
+- DO NOT use numeric-only formats like "5:30" or "17:45"
+
+💰 Prices and money:
+- Use spoken format: "twelve pounds fifty", "fifteen dollars twenty-five"
+- Avoid decimal point numbers like "12.5" or "15.25"
+
+✅ Use natural rhythm. If spelling occurs, split it from the sentence for clarity:
+  - “It’s Linh.”
+  - “That’s L - I - N - H.”
+
+Now generate the conversation based on this topic:
+{script}
+
+Return only the conversation, one line per speaker.
 """
         try:
             client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -174,15 +197,17 @@ You are an IELTS listening question generator.
 
 From the conversation below, create a Table Completion task for IELTS Listening Part 1.
 
-✅ Start with the instruction line (e.g. NO MORE THAN TWO WORDS AND/OR A NUMBER).
-✅ Then generate a table (in markdown) with TWO columns:
-    - Column 1: Field label (e.g. Name, Phone, Address, Time, Email, Reference No.)
-    - Column 2: Correct answer (not blanks)
+✅ Start with a suitable instruction line (e.g. NO MORE THAN TWO WORDS AND/OR A NUMBER).
+✅ Then generate a table in markdown with two columns:
+   - Column 1: Field label (e.g. Name, Phone number, Email, Address, Date, Time, Price, Reference code)
+   - Column 2: Correct answer (do NOT leave blanks)
 
-✅ The table should contain between 4 and 6 rows of realistic information.
-✅ Use information typical in IELTS Listening Part 1 — booking forms, personal details, delivery info, appointments, etc.
+🧠 IMPORTANT:
+✅ Keep the order of rows the same as the order in which the information appears in the conversation.
+❌ Do NOT group or reorder information.
+✅ The table should have 5–6 rows, based on what was discussed in the same order.
 
-DO NOT explain. Return only the instruction + markdown table.
+DO NOT explain. Return only the instruction and markdown table.
 
 Conversation:
 {script}
