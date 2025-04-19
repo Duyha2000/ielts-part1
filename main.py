@@ -38,13 +38,22 @@ def generate_audio():
         prompt = f"""
 You are an English tutor helping a student practice IELTS Listening Part 1.
 
-Given the topic below, write a short natural conversation (about 10-15 lines), like in the IELTS Listening exam.
+Given the topic below, write a short, realistic and friendly conversation (about 20 lines), like in the IELTS Listening exam.
 
-Make it realistic and friendly, and DO NOT label speakers (no "Speaker 1:", "Speaker A:", or names).
+Use one line per speaker. DO NOT label speakers or use names like "Speaker 1".
+
+If the conversation includes:
+
+- 🔠 Spelling names: format like → "W - H - I - T - M - O - R - E"
+- 🔢 Phone numbers: format like → "0 - 9 - 3 - 5 - 8 - 2 - 1"
+- 📧 Email addresses: format like → "t - o - m @ g - m - a - i - l . c - o - m"
+- 🔐 License plates / codes / booking references: format like → "A - B - 7 - 2 - Q - 9"
+
+Each item should be spaced out clearly, using hyphens with spaces for clarity.
 
 Prompt: {script}
 
-Just write the dialogue, one line per speaker.
+Just write the dialogue only, one line per speaker.
 """
         try:
             client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
