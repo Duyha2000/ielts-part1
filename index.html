@@ -10,125 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
       rel="stylesheet"
     />
-    <style>
-      body {
-        font-family: "Nunito", sans-serif;
-        text-align: center;
-        padding: 40px;
-        background-color: #f8f8f8;
-      }
-      h1 {
-        font-size: 28px;
-        margin-bottom: 20px;
-      }
-      textarea {
-        width: 100%;
-        max-width: 600px;
-        height: 200px;
-        padding: 10px;
-        font-size: 16px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        resize: vertical;
-        white-space: pre-line;
-
-        padding: 10px;
-      }
-      .tooltip {
-        position: relative;
-        cursor: pointer;
-        display: inline-block;
-      }
-
-      .tooltiptext {
-        visibility: hidden;
-        background-color: #444;
-        color: #fff;
-        text-align: center;
-        border-radius: 4px;
-        padding: 5px 8px;
-        position: absolute;
-        z-index: 1;
-        top: -5px;
-        left: 110%;
-        white-space: nowrap;
-        font-size: 13px;
-        opacity: 0;
-        transition: opacity 0.2s ease-in-out;
-      }
-
-      .tooltip:hover .tooltiptext {
-        visibility: visible;
-        opacity: 1;
-      }
-      select {
-        margin-top: 10px;
-        padding: 8px;
-        font-size: 14px;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-      }
-      button {
-        margin-top: 20px;
-        font-size: 16px;
-        padding: 12px 24px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-      }
-      button:hover {
-        background-color: #0056b3;
-      }
-      audio {
-        margin-top: 25px;
-        width: 100%;
-        max-width: 600px;
-        margin: auto;
-      }
-      .loading {
-        margin-top: 20px;
-        font-style: italic;
-        color: #666;
-      }
-      .preview {
-        margin-top: 30px;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-        text-align: left;
-        background: #fff;
-        border-radius: 8px;
-        padding: 10px;
-        box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
-      }
-      .line {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        margin-bottom: 10px;
-      }
-      .avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background-color: #007bff;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-family: sans-serif;
-      }
-      .bubble {
-        background: #e4e6eb;
-        padding: 8px 12px;
-        border-radius: 8px;
-        max-width: 80%;
-        line-height: 1.4;
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <h1>🎙️ Audio Dialogue Generator</h1>
@@ -177,140 +59,34 @@
     </div>
 
     <audio id="audioPlayer" controls style="display: none"></audio>
+    <div id="speedWrapper" style="display: none">
+      <label for="speedControl">Speed:</label>
+      <select id="speedControl">
+        <option value="0.5">0.5x</option>
+        <option value="0.75">0.75x</option>
+        <option value="0.9">0.9x</option>
+        <option value="1" selected>Normal</option>
+        <option value="1.05">1.05x</option>
+        <option value="1.1">1.1x</option>
+        <option value="1.15">1.15x</option>
+        <option value="1.2">1.2x</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2">2x</option>
+      </select>
+    </div>
+
+    <h2>🧠 Audio Dialogue Player</h2>
+    <div id="scriptLabel" class="script-label"></div>
+
     <div class="preview" id="scriptPreview" style="display: none"></div>
     <div class="preview" id="ieltsTable"></div>
 
-    <script>
-      let currentScript = ""; // ✅ Biến lưu hội thoại thật sau khi generate
+    <div id="audioWrapper" style="position: relative">
+      <div id="mainAudio" class="audio-center"></div>
+      <div id="archiveAudios" class="audio-corner"></div>
+    </div>
 
-      function togglePreview() {
-        const preview = document.getElementById("scriptPreview");
-        preview.style.display =
-          preview.style.display === "none" ? "block" : "none";
-      }
-
-      function showScriptInput() {
-        document.getElementById("dialogueWrapper").style.display = "block";
-        document.getElementById("editScriptBtn").style.display = "none";
-      }
-
-      async function generateAudio() {
-        const dialogueWrapper = document.getElementById("dialogueWrapper");
-        const editBtn = document.getElementById("editScriptBtn");
-        const textarea = document.getElementById("dialogueBox");
-        const previewDiv = document.getElementById("scriptPreview");
-        const loading = document.getElementById("loadingMsg");
-        const audio = document.getElementById("audioPlayer");
-
-        const text = textarea.value.trim();
-        if (!text) return alert("Please enter a prompt or dialogue.");
-
-        dialogueWrapper.style.display = "none";
-        editBtn.style.display = "inline-block";
-        loading.style.display = "block";
-        audio.style.display = "none";
-
-        const voiceMale = document.getElementById("voiceMale").value;
-        const voiceFemale = document.getElementById("voiceFemale").value;
-        const isPrompt = !text.includes("\n");
-
-        try {
-          const res = await fetch(
-            "https://ielts-part1.onrender.com/api/generate",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                mode: isPrompt ? "prompt" : "script",
-                script: text,
-                maleVoice: voiceMale,
-                femaleVoice: voiceFemale,
-              }),
-            }
-          );
-
-          loading.style.display = "none";
-
-          if (!res.ok) {
-            alert("❌ Failed to generate audio.");
-            return;
-          }
-
-          const data = await res.json();
-          const { script, audio: audioBase64 } = data;
-
-          currentScript = script; // ✅ Lưu lại script thật dùng cho Generate Table
-
-          if (isPrompt) {
-            textarea.value = script; // ✅ Hiển thị lại nếu người dùng nhập prompt
-          }
-
-          // Convert base64 audio to Blob
-          const binary = atob(audioBase64);
-          const bytes = new Uint8Array(binary.length);
-          for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
-          }
-          const audioBlob = new Blob([bytes], { type: "audio/mpeg" });
-          const audioUrl = URL.createObjectURL(audioBlob);
-          audio.src = audioUrl;
-          audio.style.display = "block";
-          audio.play();
-
-          // Render script preview
-          const lines = script.split("\n").filter((line) => line.trim());
-          previewDiv.innerHTML = lines
-            .map(
-              (line) =>
-                `<div class="line"><div class="bubble">${line}</div></div>`
-            )
-            .join("");
-        } catch (err) {
-          loading.style.display = "none";
-          alert("❌ Error: " + err.message);
-          console.error(err);
-        }
-      }
-
-      async function generateIELTSTable() {
-        const script =
-          currentScript || document.getElementById("dialogueBox").value.trim();
-        if (!script)
-          return alert("❌ No dialogue available to generate table.");
-
-        const loading = document.getElementById("loadingMsg");
-        const container = document.getElementById("ieltsTable");
-
-        loading.style.display = "block";
-        container.innerHTML = "";
-
-        try {
-          const res = await fetch(
-            "https://ielts-part1.onrender.com/api/generate-table",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ script }),
-              mode: "cors",
-            }
-          );
-
-          loading.style.display = "none";
-
-          if (res.ok) {
-            const { html } = await res.json();
-            container.innerHTML = html;
-          } else {
-            container.innerHTML =
-              "<p style='color:red'>❌ Failed to generate table.</p>";
-          }
-        } catch (err) {
-          loading.style.display = "none";
-          container.innerHTML =
-            "<p style='color:red'>❌ Error: " + err.message + "</p>";
-          console.error(err);
-        }
-      }
-    </script>
+    <script src="app.js"></script>
   </body>
 </html>

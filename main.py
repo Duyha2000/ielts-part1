@@ -1,5 +1,3 @@
-from flask import Flask, request, send_file, jsonify
-from flask_cors import CORS
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import tempfile, os, traceback, base64
@@ -10,16 +8,10 @@ import edge_tts
 from openai import OpenAI
 from dotenv import load_dotenv
 
-
-# Flask app setup
 app = Flask(__name__)
-
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# Load environment variables
 load_dotenv()
-
-# Set OpenAI API key
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/api/generate", methods=["POST"])
@@ -33,11 +25,8 @@ def generate_audio():
     if not script:
         return jsonify({"error": "No script provided"}), 400
 
-    # ✅ Nếu là prompt → gọi GPT để sinh hội thoại
     if mode == "prompt":
         prompt = f"""
-You are an English tutor helping a student practice IELTS Listening Part 1.
-
 You are an English tutor helping a student practice IELTS Listening Part 1.
 
 Generate a short, friendly and realistic conversation between two people (10–13 lines), in the style of IELTS Listening Part 1.
@@ -69,48 +58,28 @@ It must include **at least 3 natural twists** from different categories.
   “You want me to spell that?”
 
 ❗ You must not reuse the same twist twice. Use different types.
-❗ Responses without 3 distinct twists will be considered incorrect.
-
----
-
-🧠 FORMATTING RULES:
-
-- ❌ DO NOT label speakers (no: Customer:, Student:, Agent:)
-- ✅ One line = one speaker turn
-- ✅ No explanation, no extra text — just the dialogue
 
 ---
 
 🔡 SPELLING:
 - Must break into a separate turn and include a **short pause before spelling**
-- Example formats:
-  – “That’s... [spelling here]”
-  – “Let me spell that — [spelling here]”
-- NEVER combine name and spelling in one sentence
 
 📛 Names:
-- If the topic includes a name (e.g. “under the name Linh Nguyen”), use and spell it clearly.
-- If not, choose a **realistic, natural name** (avoid using “Sarah”, “John” repeatedly).
-- Prefer names from different regions: Emma, Luca, Hana, Miguel, Linh, Aisha, etc.
----
+- Choose realistic, multicultural names.
 
 🔢 FORMATTING:
-- Phone numbers: "Zero - Nine - Eight - One"
-- Email (only spell username): "l - i - n - h at gmail dot com"
-- Times: "around five thirty", "ten a.m.", not "5:30"
+- Phone: "Zero - Nine - Eight - One"
+- Email: "a - b - c at gmail dot com"
+- Times: "around five thirty"
 - Money: "twelve pounds fifty"
-- Reference code: "A - B - 7 - X - 3"
 
 ---
-
-⚠️ Keep it **realistic**, natural, and suitable for students 
 
 Topic: {script}
 
-Return only the conversation. No labels. No extra lines.
+Return only the conversation. One line per turn. No labels.
 """
         try:
-            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             res = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 temperature=0.9,
@@ -120,91 +89,52 @@ Return only the conversation. No labels. No extra lines.
         except Exception as e:
             return jsonify({"error": f"Failed to generate dialogue from prompt: {str(e)}"}), 500
 
-    # ✅ Chuẩn bị danh sách câu thoại
     lines = [line.strip() for line in script.strip().split("\n") if line.strip()]
-    final_audio = AudioSegment.empty()
+    CHUNK_SIZE = 10
+    chunks = [lines[i:i + CHUNK_SIZE] for i in range(0, len(lines), CHUNK_SIZE)]
 
-    # ✅ Hàm async tạo file âm thanh
+    audio_chunks = []
+    script_chunks = []
+
     async def synthesize_text(text, voice, out_path):
         communicate = edge_tts.Communicate(text, voice)
         await communicate.save(out_path)
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        tasks = []
-        filenames = []
+        for chunk_index, chunk_lines in enumerate(chunks):
+            tasks = []
+            filenames = []
+            script_chunks.append(chunk_lines)
 
-        # ✅ Chuẩn bị task + tên file
-        for idx, text in enumerate(lines):
-            voice = voice_male if idx % 2 == 0 else voice_female
-            filename = os.path.join(tmpdir, f"line_{idx:02d}.mp3")
-            filenames.append(filename)
-            tasks.append(synthesize_text(text, voice, filename))
+            for idx, text in enumerate(chunk_lines):
+                voice = voice_male if idx % 2 == 0 else voice_female
+                filename = os.path.join(tmpdir, f"chunk{chunk_index}_line{idx}.mp3")
+                filenames.append(filename)
+                tasks.append(synthesize_text(text, voice, filename))
 
-        try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(asyncio.gather(*tasks))
-        except Exception as e:
-            print(f"❌ Error in async gather: {e}")
-            traceback.print_exc()
-            return jsonify({"error": str(e)}), 500
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(asyncio.gather(*tasks))
+            except Exception as e:
+                return jsonify({"error": f"Audio generation error: {str(e)}"}), 500
 
-        # ✅ Ghép các file audio lại
-        for filename in filenames:
-            seg = AudioSegment.from_file(filename)
-            final_audio += seg + AudioSegment.silent(duration=200)
+            final_audio = AudioSegment.empty()
+            for filename in filenames:
+                seg = AudioSegment.from_file(filename)
+                final_audio += seg + AudioSegment.silent(duration=200)
 
-        # ✅ Export thành mp3 và encode base64
-        buffer = BytesIO()
-        final_audio.export(buffer, format="mp3", bitrate="64k")
-        buffer.seek(0)
-        audio_base64 = base64.b64encode(buffer.read()).decode("utf-8")
+            buffer = BytesIO()
+            final_audio.export(buffer, format="mp3", bitrate="64k")
+            buffer.seek(0)
+            audio_base64 = base64.b64encode(buffer.read()).decode("utf-8")
+            audio_chunks.append(audio_base64)
 
-        return jsonify({
-            "audio": audio_base64,
-            "script": script
-        })
-             
-def convert_markdown_table_to_tooltip_html(md_table):
-    parts = md_table.strip().split("\n")
-    instruction_line = ""
-    table_lines = []
+    return jsonify({
+        "audios": audio_chunks,
+        "scripts": script_chunks
+    })
 
-    for i, line in enumerate(parts):
-        if "|" in line:
-            table_lines = parts[i:]
-            break
-        instruction_line += line + "<br>"
-
-    headers = [h.strip() for h in table_lines[0].strip("|").split("|")]
-    rows = table_lines[2:]
-
-    html = """
-    <div>
-    <p><strong>Complete the table below.</strong><br>
-    Write your answers in the blank spaces provided.</p>
-    """ + (f"<p><strong>Instruction:</strong> {instruction_line}</p>" if instruction_line else "") + """
-    <table style='width:100%; border-collapse: collapse;'>
-    <thead><tr>"""
-    html += "".join(f"<th style='border:1px solid #ddd;padding:8px'>{h}</th>" for h in headers)
-    html += "</tr></thead><tbody>"
-
-    for row in rows:
-        cols = [c.strip() for c in row.strip("|").split("|")]
-        if len(cols) == 2:
-            label, answer = cols
-            html += "<tr>"
-            html += f"<td style='border:1px solid #ddd;padding:8px'>{label}</td>"
-            html += (
-                "<td style='border:1px solid #ddd;padding:8px'>"
-                "<span class='tooltip'>______________"
-                f"<span class='tooltiptext'>{answer}</span>"
-                "</span></td>"
-            )
-            html += "</tr>"
-
-    html += "</tbody></table></div>"
-    return html
 @app.after_request
 def after_request(response):
     response.headers.add("Access-Control-Allow-Origin", "*")  # Hoặc origin cụ thể
