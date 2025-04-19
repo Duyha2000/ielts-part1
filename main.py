@@ -38,7 +38,7 @@ def generate_audio():
         prompt = f"""
 You are an English tutor helping a student practice IELTS Listening Part 1.
 
-Given the topic below, write a short natural conversation (about 10 lines), like in the IELTS Listening exam.
+Given the topic below, write a short natural conversation (about 15-20 lines), like in the IELTS Listening exam.
 
 Make it realistic and friendly, and DO NOT label speakers (no "Speaker 1:", "Speaker A:", or names).
 
