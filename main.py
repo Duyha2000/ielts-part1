@@ -1,25 +1,20 @@
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
-import traceback
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import tempfile, os, traceback, base64
 from pydub import AudioSegment
-import tempfile, os
 from io import BytesIO
+import asyncio
+import edge_tts
 from openai import OpenAI
 from dotenv import load_dotenv
-import edge_tts
-import asyncio
+
 
 # Flask app setup
 app = Flask(__name__)
 
-CORS(app, resources={r"/api/*": {
-    "origins": [
-        "https://ieltspart1.netlify.app",
-        "https://www.ieltspart1.netlify.app"
-    ],
-    "methods": ["GET", "POST", "OPTIONS"],
-    "allow_headers": ["Content-Type"],
-}})
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Load environment variables
 load_dotenv()
@@ -42,12 +37,15 @@ def generate_audio():
     if mode == "prompt":
         prompt = f"""
 You are an English tutor helping a student practice IELTS Listening Part 1.
-Based on the prompt below, write a short conversation between two people (about 6–10 lines), like in the IELTS Listening exam.
+
+Given the topic below, write a short natural conversation (about 10 lines), like in the IELTS Listening exam.
+
+Make it realistic and friendly, and DO NOT label speakers (no "Speaker 1:", "Speaker A:", or names).
 
 Prompt: {script}
 
-Write only the conversation, one line per speaker, alternating turns.
-        """
+Just write the dialogue, one line per speaker.
+"""
         try:
             from openai import OpenAI
             import os
