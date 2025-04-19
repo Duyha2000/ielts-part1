@@ -113,7 +113,7 @@ Return only the conversation. No labels. No extra lines.
             client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             res = client.chat.completions.create(
                 model="gpt-3.5-turbo",
-                temperature=0.85,
+                temperature=0.9,
                 messages=[{"role": "user", "content": prompt}]
             )
             script = res.choices[0].message.content.strip()
