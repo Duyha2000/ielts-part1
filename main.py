@@ -29,12 +29,42 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/api/generate", methods=["POST"])
 def generate_audio():
-    
     data = request.get_json()
     script = data.get("script", "")
+    mode = data.get("mode", "script")
+    voice_male = data.get("maleVoice", "en-US-GuyNeural")
+    voice_female = data.get("femaleVoice", "en-US-JennyNeural")
+
     if not script:
         return jsonify({"error": "No script provided"}), 400
 
+    # ✅ Nếu là prompt, gọi GPT để tạo đoạn hội thoại
+    if mode == "prompt":
+        prompt = f"""
+You are an English tutor helping a student practice IELTS Listening Part 1.
+Based on the prompt below, write a short conversation between two people (about 6–10 lines), like in the IELTS Listening exam.
+
+Prompt: {script}
+
+Write only the conversation, one line per speaker, alternating turns.
+        """
+        try:
+            from openai import OpenAI
+            import os
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+            res = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                temperature=0.6,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            script = res.choices[0].message.content
+        except Exception as e:
+            return jsonify({"error": f"Failed to generate dialogue from prompt: {str(e)}"}), 500
+
+    # 👉 Tạo audio như cũ
     lines = [line.strip() for line in script.strip().split("\n") if line.strip()]
     final_audio = AudioSegment.empty()
 
@@ -44,11 +74,7 @@ def generate_audio():
 
     with tempfile.TemporaryDirectory() as tmpdir:
         for idx, text in enumerate(lines):
-            speaker = "male" if idx % 2 == 0 else "female"
-            voice_male = data.get("maleVoice", "en-US-GuyNeural")
-            voice_female = data.get("femaleVoice", "en-US-JennyNeural")
-            voice = voice_male if speaker == "male" else voice_female
-
+            voice = voice_male if idx % 2 == 0 else voice_female
             filename = os.path.join(tmpdir, f"line_{idx:02d}.mp3")
             try:
                 loop = asyncio.new_event_loop()

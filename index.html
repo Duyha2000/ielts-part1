@@ -129,11 +129,19 @@
   </head>
   <body>
     <h1>🎙️ Audio Dialogue Generator</h1>
-
-    <textarea
-      id="dialogueBox"
-      placeholder="Each line is a message. Speaker will alternate automatically.\nExample:\nGood morning. How can I help you?\nGood morning. I want to alter my insurance policy."
-    ></textarea>
+    <div id="dialogueWrapper">
+      <textarea
+        id="dialogueBox"
+        placeholder="Each line is a message. Speaker will alternate automatically.\nExample:\nGood morning. How can I help you?\nGood morning. I want to alter my insurance policy."
+      ></textarea>
+    </div>
+    <button
+      id="editScriptBtn"
+      onclick="showScriptInput()"
+      style="display: none"
+    >
+      ✏️ Edit Script
+    </button>
 
     <br />
     <label>🧑 Giọng nam: </label>
@@ -153,40 +161,47 @@
     <br />
     <button onclick="generateAudio()">🔊 Generate Audio</button>
     <button onclick="generateIELTSTable()">📄 Generate IELTS Table</button>
+    <button onclick="togglePreview()">📝 Show Script Preview</button>
 
     <div class="loading" id="loadingMsg" style="display: none">
       🔄 Processing, please wait...
     </div>
 
     <audio id="audioPlayer" controls style="display: none"></audio>
-    <div class="preview" id="scriptPreview"></div>
+    <div class="preview" id="scriptPreview" style="display: none"></div>
     <div class="preview" id="ieltsTable"></div>
 
     <script>
+      function togglePreview() {
+        const preview = document.getElementById("scriptPreview");
+        preview.style.display =
+          preview.style.display === "none" ? "block" : "none";
+      }
+
       async function generateAudio() {
-        const text = document.getElementById("dialogueBox").value.trim();
-        if (!text) return alert("Please enter some dialogue.");
+        const dialogueWrapper = document.getElementById("dialogueWrapper");
+        const editBtn = document.getElementById("editScriptBtn");
+        const textarea = document.getElementById("dialogueBox");
+        const text = textarea.value.trim();
+        const previewDiv = document.getElementById("scriptPreview");
+        const loading = document.getElementById("loadingMsg");
+        const audio = document.getElementById("audioPlayer");
+
+        if (!text) return alert("Please enter some dialogue or prompt.");
+
+        // Ẩn textarea, hiện nút chỉnh sửa
+        dialogueWrapper.style.display = "none";
+        editBtn.style.display = "inline-block";
+
+        // Hiện loading, ẩn audio
+        loading.style.display = "block";
+        audio.style.display = "none";
 
         const voiceMale = document.getElementById("voiceMale").value;
         const voiceFemale = document.getElementById("voiceFemale").value;
 
-        const loading = document.getElementById("loadingMsg");
-        const audio = document.getElementById("audioPlayer");
-        loading.style.display = "block";
-        audio.style.display = "none";
-
-        const lines = text.split("\n").filter((line) => line.trim());
-        const previewDiv = document.getElementById("scriptPreview");
-        previewDiv.innerHTML = lines
-          .map(
-            (line, i) => `
-          <div class="line">
-            <div class="avatar">${i % 2 === 0 ? "👨" : "👩"}</div>
-            <div class="bubble">${line}</div>
-          </div>
-        `
-          )
-          .join("");
+        // Xác định đây là prompt hay script thật
+        const isPrompt = !text.includes("\n");
 
         const res = await fetch(
           "https://ielts-part1.onrender.com/api/generate",
@@ -194,6 +209,7 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+              mode: isPrompt ? "prompt" : "script",
               script: text,
               maleVoice: voiceMale,
               femaleVoice: voiceFemale,
@@ -208,14 +224,31 @@
           const url = URL.createObjectURL(blob);
           audio.src = url;
           audio.style.display = "block";
-          audio.style.margin = "auto";
-          audio.style.padding = "10px 0";
           audio.play();
+
+          // Nếu không phải prompt → hiển thị đoạn preview
+          if (!isPrompt) {
+            const lines = text.split("\n").filter((line) => line.trim());
+            previewDiv.innerHTML = lines
+              .map(
+                (line) => `
+            <div class="line">
+              <div class="bubble">${line}</div>
+            </div>
+          `
+              )
+              .join("");
+          } else {
+            previewDiv.innerHTML = ""; // Clear nếu là prompt (vì chưa biết nội dung cụ thể)
+          }
         } else {
           alert("❌ Failed to generate audio.");
         }
       }
-
+      function showScriptInput() {
+        document.getElementById("dialogueWrapper").style.display = "block";
+        document.getElementById("editScriptBtn").style.display = "none";
+      }
       async function generateIELTSTable() {
         const text = document.getElementById("dialogueBox").value.trim();
         if (!text) return alert("Please enter some dialogue first!");
