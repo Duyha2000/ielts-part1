@@ -50,23 +50,26 @@ It must include **at least 3 natural twists** from different categories.
 
 ---
 
-🌀 YOU MUST include **3 or more** of the following twists:
+🌀 You MUST include at least **three** of the following twist types, distributed naturally:
 
-1. ✅ **Self-correction**:
-   - “Actually, just two nights.”
-   - “No wait, make that Saturday.”
+– Small correction:  
+  “Actually, just two nights.”  
+  “No wait, make that Saturday.”
 
-2. ✅ **Hesitation**:
-   - “Hmm… I think it’s the 20th.”
-   - “Let me see... probably around 2 p.m.”
+– Hesitation or filler:  
+  “Hmm… I think it’s the 20th.”  
+  “Let me see... probably at two p.m.”
 
-3. ✅ **Uncertainty / Choosing**:
-   - “Maybe a double? No, a single.”
-   - “I was thinking two beds, but a single’s fine.”
+– Indecisiveness / Change of mind:  
+  “Maybe a double? No, a single.”  
+  “I thought Tuesday, but Friday works better.”
 
-4. ✅ **Clarification**:
-   - “Do you mean like my reference number?”
-   - “You want it spelled out?”
+– Clarification / Check:  
+  “Do you mean like my reference number?”  
+  “You want me to spell that?”
+
+❗ You must not reuse the same twist twice. Use different types.
+❗ Responses without 3 distinct twists will be considered incorrect.
 
 ---
 
@@ -79,10 +82,16 @@ It must include **at least 3 natural twists** from different categories.
 ---
 
 🔡 SPELLING:
-- Must break into separate turn and **pause before spelling**
-- Format: “That’s... S - A - R - A - H.” or “Let me spell it — N - G - U - Y - E - N.”
+- Must break into a separate turn and include a **short pause before spelling**
+- Example formats:
+  – “That’s... [spelling here]”
+  – “Let me spell that — [spelling here]”
 - NEVER combine name and spelling in one sentence
 
+📛 Names:
+- If the topic includes a name (e.g. “under the name Linh Nguyen”), use and spell it clearly.
+- If not, choose a **realistic, natural name** (avoid using “Sarah”, “John” repeatedly).
+- Prefer names from different regions: Emma, Luca, Hana, Miguel, Linh, Aisha, etc.
 ---
 
 🔢 FORMATTING:
@@ -104,7 +113,7 @@ Return only the conversation. No labels. No extra lines.
             client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             res = client.chat.completions.create(
                 model="gpt-3.5-turbo",
-                temperature=0.6,
+                temperature=0.85,
                 messages=[{"role": "user", "content": prompt}]
             )
             script = res.choices[0].message.content.strip()
@@ -229,33 +238,11 @@ Based on the conversation below, generate a **Table Completion** task for IELTS 
 – DO NOT make up new information. Use only what is **explicitly stated** in the conversation.
 – DO NOT leave blanks — every answer cell must be filled.
 
-💡 Example:
+✅ Format reminder: The table should have headers and rows like:
 
-Conversation:
-Hi, I’d like to book a room.
-Sure. What date are you thinking?
-Uh… maybe the 18th of August. No wait—let’s make it the 20th instead.
-Alright. And how many nights?
-Just two, thanks.
-Okay. May I have your full name?
-Yes, it's Sarah Lee.
-Can you spell the last name for me?
-L - E - E.
-And would you like a single or double room?
-Hmm… I was thinking a double, but a single room is fine.
-
-✅ Output:
-
-NO MORE THAN TWO WORDS AND/OR A NUMBER
-
-| Field label         | Correct answer    |
-|---------------------|-------------------|
-| Booking date        | 20th of August    |
-| Number of nights    | two               |
-| Guest name          | Sarah Lee         |
-| Spelled surname     | L - E - E         |
-| Room type           | single room       |
-
+| Field label | Correct answer |
+|-------------|----------------|
+| (your data) | (from dialogue) |
 ---
 
 Conversation:
