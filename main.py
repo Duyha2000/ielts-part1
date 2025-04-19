@@ -38,7 +38,7 @@ def generate_audio():
         prompt = f"""
 You are an English tutor helping a student practice IELTS Listening Part 1.
 
-Given the topic below, write a short, realistic and friendly conversation (about 10-15 lines), like in the IELTS Listening exam.
+Given the topic below, write a short, realistic and friendly conversation (about 10-13 lines), like in the IELTS Listening exam.
 
 🧠 Formatting rules:
 
@@ -76,17 +76,44 @@ Given the topic below, write a short, realistic and friendly conversation (about
 - Use spoken format: "twelve pounds fifty", "fifteen dollars twenty-five"
 - Avoid decimal point numbers like "12.5" or "15.25"
 
-✅ Use natural rhythm. If spelling occurs, split it from the sentence for clarity:
-  - “It’s Peter.”
-  - “That’s P - E - T - E - R.”
+🧠 Spelling and natural rhythm:
 
-🌀 Add light natural twists like:
-- Small corrections: “Actually, just two nights.”
-- Hesitation: “Hmm... I think it’s the 20th.”
-- Choosing between options: “Maybe a double? No, a single.”
-- Clarifying something: “You mean like a reference number?”
+✅ When spelling, always **pause before the spelling starts**.  
+– Do NOT merge the name and spelling into one turn.  
+– Break it clearly into a separate line, like:
+  - “It’s Sarah.”
+  - “That’s S - A - R - A - H.”
 
-⚠️ Keep it **realistic and simple**, suitable for students at IELTS Band 4.5–5.0.
+✅ To make it sound realistic and IELTS-like, allow hesitation before spelling:
+  - “That’s... S - A - R - A - H.”
+  - “Let me spell that — S - A - R - A - H.”
+  - “It’s spelled... S - A - R - A - H.”
+
+⛔ Do NOT say: “That’s spelled S - A - R - A - H.” in one go — this sounds too fast and robotic.
+
+---
+
+🌀 Add **light, natural twists** just like real IELTS Part 1:
+
+– Small corrections:  
+  - “Actually, just two nights.”  
+  - “No wait—make that the 20th.”  
+
+– Hesitation:  
+  - “Hmm... I think it’s the 20th.”  
+  - “Let me see... probably next Friday.”  
+
+– Choosing between options:  
+  - “Maybe a double? No, a single.”  
+  - “I was thinking two beds, but a single’s fine.”  
+
+– Clarifying / checking:  
+  - “You mean like a reference number?”  
+  - “Do you need that spelled out?”
+
+🎯 Goal: Make the dialogue realistic, clear, and simple — like **two people talking naturally**, not a scripted test.
+
+⚠️ Keep it **realistic and simple**, suitable for students at IELTS Band 5.0.
 
 Now generate the conversation based on this topic:
 {script}
@@ -215,7 +242,7 @@ Based on the conversation below, generate a **Table Completion** task for IELTS 
    - Column 2: The correct answer (copied exactly from the conversation)
 
 🧠 RULES:
-– Return **at least 5 rows**, if available.
+– Return **at least 3 rows**, if available.
 – Field labels must be **clear and specific**, avoid vague labels like “Type” or “Number”.
 – The table rows must follow the **same order** as the details appear in the dialogue (top to bottom).
 – DO NOT combine or summarize information from different lines.
